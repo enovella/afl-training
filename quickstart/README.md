@@ -80,8 +80,114 @@ For comparison you could also test without the provided example inputs, e.g.:
 POC
 ====
 
-Without instrumentation (`-n`): (`afl-fuzz -i inputs -o out -n ./vulnerable`)
+Without instrumentation (`-n`): (`afl-fuzz -i in -o out -n ./vulnerable`)
 ![imaing](https://github.com/enovella/afl-training/blob/master/quickstart/pics/afl-pic-vulnerable-dumbf.png)
 
 With instrumentation (`afl-clang-fast`):
 ![imaing](https://github.com/enovella/afl-training/blob/master/quickstart/pics/afl-pic-vulnerable.png)
+
+Crashes
+========
+
+```c
+>  ./vulnerable < out/crashes/id\:000000\,sig\:06\,src\:000002\,op\:flip2\,pos\:4
+=================================================================
+==6075==ERROR: AddressSanitizer: stack-buffer-underflow on address 0x7ffdb77de9a0 at pc 0x00000050be42 bp 0x7ffdb77de990 sp 0x7ffdb77de988
+WRITE of size 1 at 0x7ffdb77de9a0 thread T0
+    #0 0x50be41  (/home/edu/github/afl-training/quickstart/vulnerable+0x50be41)
+    #1 0x7f0ad25aab96  (/lib/x86_64-linux-gnu/libc.so.6+0x21b96)
+    #2 0x41c339  (/home/edu/github/afl-training/quickstart/vulnerable+0x41c339)
+
+Address 0x7ffdb77de9a0 is located in stack of thread T0 at offset 0 in frame
+    #0 0x50b80f  (/home/edu/github/afl-training/quickstart/vulnerable+0x50b80f)
+
+  This frame has 1 object(s):
+    [32, 132) 'input'
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism or swapcontext
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-underflow (/home/edu/github/afl-training/quickstart/vulnerable+0x50be41)
+Shadow bytes around the buggy address:
+  0x100036ef3ce0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100036ef3cf0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100036ef3d00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100036ef3d10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100036ef3d20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+=>0x100036ef3d30: 00 00 00 00[f1]f1 f1 f1 00 00 00 00 00 00 00 00
+  0x100036ef3d40: 00 00 00 00 04 f3 f3 f3 f3 f3 f3 f3 00 00 00 00
+  0x100036ef3d50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100036ef3d60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100036ef3d70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100036ef3d80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==6075==ABORTING
+```
+
+```
+>  ./vulnerable < out/crashes/id\:000001\,sig\:06\,src\:000004\,op\:havoc\,rep\:64
+=================================================================
+==6113==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7ffe813fc0c4 at pc 0x00000044d7e4 bp 0x7ffe813fc030 sp 0x7ffe813fb7e0
+READ of size 101 at 0x7ffe813fc0c4 thread T0
+    #0 0x44d7e3  (/home/edu/github/afl-training/quickstart/vulnerable+0x44d7e3)
+    #1 0x50bc47  (/home/edu/github/afl-training/quickstart/vulnerable+0x50bc47)
+    #2 0x7f59254fdb96  (/lib/x86_64-linux-gnu/libc.so.6+0x21b96)
+    #3 0x41c339  (/home/edu/github/afl-training/quickstart/vulnerable+0x41c339)
+
+Address 0x7ffe813fc0c4 is located in stack of thread T0 at offset 132 in frame
+    #0 0x50b80f  (/home/edu/github/afl-training/quickstart/vulnerable+0x50b80f)
+
+  This frame has 1 object(s):
+    [32, 132) 'input' <== Memory access at offset 132 overflows this variable
+HINT: this may be a false positive if your program uses some custom stack unwind mechanism or swapcontext
+      (longjmp and C++ exceptions *are* supported)
+SUMMARY: AddressSanitizer: stack-buffer-overflow (/home/edu/github/afl-training/quickstart/vulnerable+0x44d7e3)
+Shadow bytes around the buggy address:
+  0x1000502777c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1000502777d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1000502777e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x1000502777f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100050277800: 00 00 00 00 00 00 00 00 f1 f1 f1 f1 00 00 00 00
+=>0x100050277810: 00 00 00 00 00 00 00 00[04]f3 f3 f3 f3 f3 f3 f3
+  0x100050277820: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100050277830: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100050277840: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100050277850: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+  0x100050277860: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Shadow byte legend (one shadow byte represents 8 application bytes):
+  Addressable:           00
+  Partially addressable: 01 02 03 04 05 06 07
+  Heap left redzone:       fa
+  Freed heap region:       fd
+  Stack left redzone:      f1
+  Stack mid redzone:       f2
+  Stack right redzone:     f3
+  Stack after return:      f5
+  Stack use after scope:   f8
+  Global redzone:          f9
+  Global init order:       f6
+  Poisoned by user:        f7
+  Container overflow:      fc
+  Array cookie:            ac
+  Intra object redzone:    bb
+  ASan internal:           fe
+  Left alloca redzone:     ca
+  Right alloca redzone:    cb
+==6113==ABORTING
+```
